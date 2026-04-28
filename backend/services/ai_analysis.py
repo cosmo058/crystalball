@@ -53,37 +53,15 @@ def _build_prompt(
     market_cap_str = f"${overview.market_cap:,.0f}" if overview.market_cap else "N/A"
     div_yield_str = f"{overview.dividend_yield:.2f}%" if overview.dividend_yield else "None"
 
-    return f"""You are a financial analyst assistant. Analyze the following stock data and provide a concise 3-4 paragraph investment intelligence summary.
+    return f"""You are a sharp financial analyst. Give a 2-paragraph max snapshot on {overview.name} ({overview.ticker}).
 
-**Stock:** {overview.name} ({overview.ticker})
-**Price:** ${overview.price} ({overview.change_pct:+.2f}% today)
-**Sector:** {overview.sector or 'N/A'} | **Industry:** {overview.industry or 'N/A'}
+Data: Price ${overview.price} ({overview.change_pct:+.2f}% today) | Score {score.total}/100 → {score.signal} ({score.confidence}) | RSI {technicals.rsi or 'N/A'} | MACD {'bullish' if (technicals.macd or 0) > (technicals.macd_signal or 0) else 'bearish'} | P/E {overview.pe_ratio or 'N/A'} | EPS {overview.eps or 'N/A'} | Cap {market_cap_str} | 52w ${overview.week_52_low}–${overview.week_52_high} | Price vs SMA200 {'above' if overview.price and technicals.sma_200 and overview.price > technicals.sma_200 else 'below'}
+News: {news_lines}
 
-**Fundamentals:**
-- P/E Ratio: {overview.pe_ratio or 'N/A'}
-- EPS: {overview.eps or 'N/A'}
-- Market Cap: {market_cap_str}
-- Dividend Yield: {div_yield_str}
-- 52-Week Range: ${overview.week_52_low} – ${overview.week_52_high}
+Paragraph 1: What's driving price action right now — technicals, momentum, news catalyst.
+Paragraph 2: The key risk or opportunity. End with one clear takeaway sentence.
 
-**Technical Indicators:**
-- RSI (14): {technicals.rsi or 'N/A'}
-- MACD: {technicals.macd or 'N/A'} | Signal: {technicals.macd_signal or 'N/A'}
-- SMA 20/50/200: {technicals.sma_20 or 'N/A'} / {technicals.sma_50 or 'N/A'} / {technicals.sma_200 or 'N/A'}
-
-**Crystalball Score:** {score.total}/100 — Signal: **{score.signal}** ({score.confidence} confidence)
-- Valuation: {score.valuation} | Momentum: {score.momentum} | Technical: {score.technical} | Fundamental: {score.fundamental}
-
-**Recent News:**
-{news_lines}
-
-Provide:
-1. A brief company and market position overview
-2. Key technical and fundamental observations
-3. Risk factors to watch
-4. A clear investment perspective based on the data (not personalized financial advice)
-
-Be direct, data-driven, and professional. No bullet points — write in flowing paragraphs."""
+Be blunt and specific. No filler. No disclaimers."""
 
 
 def generate_ai_summary(
@@ -99,7 +77,7 @@ def generate_ai_summary(
         client = _get_anthropic()
         message = client.messages.create(
             model="claude-sonnet-4-6",
-            max_tokens=1024,
+            max_tokens=512,
             messages=[{"role": "user", "content": prompt}],
         )
         return message.content[0].text
