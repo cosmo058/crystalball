@@ -4,7 +4,8 @@ from sqlalchemy import String, DateTime, func
 from sqlalchemy.ext.asyncio import async_sessionmaker
 from datetime import datetime
 
-DATABASE_URL = "sqlite+aiosqlite:///./crystalball.db"
+import os
+DATABASE_URL = os.environ.get("DATABASE_URL", "sqlite+aiosqlite:///./data/crystalball.db")
 
 engine = create_async_engine(DATABASE_URL, echo=False)
 AsyncSessionLocal = async_sessionmaker(engine, expire_on_commit=False)

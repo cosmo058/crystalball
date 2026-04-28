@@ -1,3 +1,4 @@
+import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
@@ -10,15 +11,21 @@ load_dotenv()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    os.makedirs("data", exist_ok=True)
     await init_db()
     yield
 
 
 app = FastAPI(title="Crystalball", version="1.0.0", lifespan=lifespan)
 
+_cors_origins = os.environ.get(
+    "CORS_ORIGINS",
+    "http://localhost:5173,http://localhost:3000,http://localhost:80,http://localhost"
+).split(",")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:3000"],
+    allow_origins=_cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
