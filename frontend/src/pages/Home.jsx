@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search, TrendingUp, BarChart2, Sparkles, Bookmark } from "lucide-react";
+import { normalizeTicker } from "../utils/ticker";
 
-const POPULAR = ["AAPL", "TSLA", "NVDA", "MSFT", "AMZN", "META", "GOOGL", "AMD"];
+const POPULAR = ["AAPL", "TSLA", "NVDA", "MSFT", "SHOP.TO", "RY.TO", "CNQ.TO", "AMD"];
 
 export default function Home() {
   const [query, setQuery] = useState("");
@@ -10,8 +11,8 @@ export default function Home() {
 
   const handleSearch = (e) => {
     e.preventDefault();
-    const t = query.trim().toUpperCase();
-    if (t) navigate(`/stock/${t}`);
+    const t = normalizeTicker(query);
+    if (t) navigate(`/stock/${encodeURIComponent(t)}`);
   };
 
   return (
@@ -34,7 +35,7 @@ export default function Home() {
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Enter a ticker symbol…"
+            placeholder="Enter a ticker (AAPL, TSX:ASCU, SHOP.TO)…"
             className="w-full bg-card border border-border rounded-xl pl-12 pr-4 py-4 text-slate-200 placeholder-slate-500 focus:outline-none focus:border-accent text-base transition"
             autoFocus
           />

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { BookmarkPlus, BookmarkCheck, ArrowLeft, RefreshCw } from "lucide-react";
 import { api } from "../api";
+import { displayTicker } from "../utils/ticker";
 import OverviewCard from "../components/OverviewCard";
 import ScoreCard from "../components/ScoreCard";
 import PriceChart from "../components/PriceChart";
@@ -10,7 +11,8 @@ import NewsCard from "../components/NewsCard";
 import AiSummary from "../components/AiSummary";
 
 export default function StockDetail() {
-  const { ticker } = useParams();
+  const { ticker: rawTicker } = useParams();
+  const ticker = decodeURIComponent(rawTicker);
   const navigate = useNavigate();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -55,7 +57,7 @@ export default function StockDetail() {
     return (
       <div className="flex flex-col items-center justify-center h-64 gap-3">
         <RefreshCw size={24} className="text-accent animate-spin" />
-        <p className="text-slate-400 text-sm">Analyzing {ticker.toUpperCase()}…</p>
+        <p className="text-slate-400 text-sm">Analyzing {displayTicker(ticker)}…</p>
         <p className="text-slate-600 text-xs">Fetching market data & generating AI insights</p>
       </div>
     );
@@ -78,7 +80,7 @@ export default function StockDetail() {
           Back
         </button>
         <div className="flex items-center gap-3">
-          <span className="text-slate-500 text-sm">{data?.ticker}</span>
+          <span className="text-slate-500 text-sm">{displayTicker(data?.ticker ?? ticker)}</span>
           <button
             onClick={toggleWatchlist}
             disabled={watchlistLoading}

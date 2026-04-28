@@ -1,6 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { Search, TrendingUp } from "lucide-react";
+import { normalizeTicker } from "../utils/ticker";
 
 export default function Navbar() {
   const [query, setQuery] = useState("");
@@ -8,9 +9,9 @@ export default function Navbar() {
 
   const handleSearch = (e) => {
     e.preventDefault();
-    const t = query.trim().toUpperCase();
+    const t = normalizeTicker(query);
     if (t) {
-      navigate(`/stock/${t}`);
+      navigate(`/stock/${encodeURIComponent(t)}`);
       setQuery("");
     }
   };
@@ -28,7 +29,7 @@ export default function Navbar() {
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search ticker (e.g. AAPL, TSLA)..."
+            placeholder="Search ticker (e.g. AAPL, TSX:ASCU, ASCU.TO)..."
             className="w-full bg-surface border border-border rounded-lg pl-9 pr-4 py-2 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-accent transition"
           />
         </div>
