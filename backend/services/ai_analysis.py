@@ -50,6 +50,9 @@ def _build_prompt(
         f"- [{item.sentiment}] {item.title}" for item in news[:5]
     ) or "No recent news available."
 
+    market_cap_str = f"${overview.market_cap:,.0f}" if overview.market_cap else "N/A"
+    div_yield_str = f"{overview.dividend_yield * 100:.2f}%" if overview.dividend_yield else "None"
+
     return f"""You are a financial analyst assistant. Analyze the following stock data and provide a concise 3-4 paragraph investment intelligence summary.
 
 **Stock:** {overview.name} ({overview.ticker})
@@ -59,8 +62,8 @@ def _build_prompt(
 **Fundamentals:**
 - P/E Ratio: {overview.pe_ratio or 'N/A'}
 - EPS: {overview.eps or 'N/A'}
-- Market Cap: ${overview.market_cap:,.0f if overview.market_cap else 'N/A'}
-- Dividend Yield: {f"{overview.dividend_yield*100:.2f}%" if overview.dividend_yield else 'None'}
+- Market Cap: {market_cap_str}
+- Dividend Yield: {div_yield_str}
 - 52-Week Range: ${overview.week_52_low} – ${overview.week_52_high}
 
 **Technical Indicators:**
