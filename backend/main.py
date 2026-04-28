@@ -30,4 +30,5 @@ app.include_router(watchlist.router)
 
 @app.get("/api/health")
 async def health():
-    return {"status": "ok", "version": "1.0.0"}
+    from services.ai_analysis import get_ai_provider_name
+    return {"status": "ok", "version": "1.0.0", "ai_provider": get_ai_provider_name()}

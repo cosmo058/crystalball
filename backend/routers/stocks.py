@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, Query
 from services.market_data import get_stock_overview, get_price_history, get_technical_indicators
 from services.scoring import compute_score
 from services.news_service import get_stock_news
-from services.ai_analysis import generate_ai_summary
+from services.ai_analysis import generate_ai_summary, get_ai_provider_name
 from models.schemas import StockAnalysis, StockOverview
 import os
 
@@ -43,9 +43,11 @@ async def get_stock_analysis(
         history = get_price_history(ticker)
 
         ai_summary = None
-        if ai and os.environ.get("ANTHROPIC_API_KEY"):
+        ai_provider = None
+        if ai and get_ai_provider_name():
             try:
                 ai_summary = generate_ai_summary(overview, technicals, score, news)
+                ai_provider = get_ai_provider_name()
             except Exception:
                 ai_summary = None
 
@@ -56,6 +58,7 @@ async def get_stock_analysis(
             score=score,
             news=news,
             ai_summary=ai_summary,
+            ai_provider=ai_provider,
             price_history=history,
         )
     except Exception as e:

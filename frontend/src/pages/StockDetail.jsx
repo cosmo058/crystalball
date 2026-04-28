@@ -106,7 +106,7 @@ export default function StockDetail() {
         </div>
       </div>
 
-      {data?.ai_summary && <AiSummary summary={data.ai_summary} />}
+      {data?.ai_summary && <AiSummary summary={data.ai_summary} provider={data.ai_provider} />}
     </div>
   );
 }

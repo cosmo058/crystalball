@@ -57,6 +57,7 @@ class StockAnalysis(BaseModel):
     score: ScoreBreakdown
     news: list[NewsItem]
     ai_summary: Optional[str]
+    ai_provider: Optional[str]
     price_history: list[dict]
 
 
