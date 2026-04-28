@@ -22,7 +22,7 @@ def score_valuation(overview: StockOverview) -> float:
             score -= 20
 
     if overview.dividend_yield is not None and overview.dividend_yield > 0:
-        score += min(overview.dividend_yield * 200, 15)
+        score += min(overview.dividend_yield * 2, 15)
 
     price = overview.price
     high52 = overview.week_52_high

@@ -40,7 +40,7 @@ export default function OverviewCard({ overview }) {
         <Stat label="Market Cap" value={fmt(overview.market_cap)} />
         <Stat label="P/E Ratio" value={overview.pe_ratio?.toFixed(2)} />
         <Stat label="EPS (TTM)" value={overview.eps != null ? `$${overview.eps?.toFixed(2)}` : null} />
-        <Stat label="Dividend Yield" value={overview.dividend_yield != null ? `${(overview.dividend_yield * 100).toFixed(2)}%` : null} />
+        <Stat label="Dividend Yield" value={overview.dividend_yield != null ? `${overview.dividend_yield.toFixed(2)}%` : null} />
         <Stat label="52w High" value={overview.week_52_high != null ? `$${overview.week_52_high?.toFixed(2)}` : null} />
         <Stat label="52w Low" value={overview.week_52_low != null ? `$${overview.week_52_low?.toFixed(2)}` : null} />
         <Stat label="Volume" value={overview.volume?.toLocaleString()} />
