@@ -103,7 +103,7 @@ export default function StockDetail() {
           <TechnicalsCard technicals={data?.technicals} price={data?.overview?.price} />
         </div>
         <div className="space-y-4">
-          <ScoreCard score={data?.score} />
+          <ScoreCard score={data?.score} explanations={data?.score_explanations} />
           <NewsCard news={data?.news} />
         </div>
       </div>

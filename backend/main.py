@@ -1,12 +1,13 @@
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
-from dotenv import load_dotenv
 from database import init_db
 from routers import stocks, watchlist
-
-load_dotenv()
 
 
 @asynccontextmanager

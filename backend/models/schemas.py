@@ -59,6 +59,7 @@ class StockAnalysis(BaseModel):
     ai_summary: Optional[str]
     ai_provider: Optional[str]
     price_history: list[dict]
+    score_explanations: Optional[dict] = None
 
 
 class WatchlistItem(BaseModel):

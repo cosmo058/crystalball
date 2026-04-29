@@ -1,4 +1,5 @@
 import os
+import json
 import anthropic
 from google import genai
 from models.schemas import StockOverview, TechnicalIndicators, ScoreBreakdown, NewsItem
@@ -88,3 +89,82 @@ def generate_ai_summary(
         contents=prompt,
     )
     return response.text
+
+
+def _build_score_explanations_prompt(
+    overview: StockOverview,
+    technicals: TechnicalIndicators,
+    score: ScoreBreakdown,
+) -> str:
+    pe = f"{overview.pe_ratio:.1f}" if overview.pe_ratio else "N/A"
+    eps = f"{overview.eps:.2f}" if overview.eps else "N/A"
+    div = f"{overview.dividend_yield * 100:.2f}%" if overview.dividend_yield else "none"
+
+    if overview.market_cap:
+        cap = overview.market_cap
+        cap_str = f"${cap/1e9:.1f}B" if cap >= 1e9 else f"${cap/1e6:.0f}M"
+    else:
+        cap_str = "N/A"
+
+    high52, low52 = overview.week_52_high, overview.week_52_low
+    if overview.price and high52 and low52 and high52 != low52:
+        pos = round((overview.price - low52) / (high52 - low52) * 100, 1)
+        pos_str = f"{pos}% of the way from 52w low to high"
+    else:
+        pos_str = "N/A"
+
+    rsi = f"{technicals.rsi:.1f}" if technicals.rsi else "N/A"
+    macd_dir = "bullish" if (technicals.macd or 0) > (technicals.macd_signal or 0) else "bearish"
+
+    def vs_sma(sma):
+        if overview.price and sma:
+            return "above" if overview.price > sma else "below"
+        return "N/A"
+
+    vol_ratio = (
+        f"{overview.volume / overview.avg_volume:.1f}x"
+        if overview.volume and overview.avg_volume else "N/A"
+    )
+
+    return f"""Score these 4 sections for {overview.ticker} and explain each in ONE blunt sentence (max 18 words). Use the actual numbers.
+
+Valuation {score.valuation}/100 — P/E {pe} | dividend yield {div} | price position {pos_str}
+Technical {score.technical}/100 — RSI {rsi} | MACD {macd_dir} | vs SMA-20 {vs_sma(technicals.sma_20)} | vs SMA-50 {vs_sma(technicals.sma_50)} | vs SMA-200 {vs_sma(technicals.sma_200)}
+Momentum {score.momentum}/100 — daily change {overview.change_pct:+.2f}% | volume {vol_ratio} of 3-month avg
+Fundamental {score.fundamental}/100 — EPS {eps} | market cap {cap_str}
+
+Return ONLY valid JSON, no markdown:
+{{"valuation":"...","technical":"...","momentum":"...","fundamental":"..."}}"""
+
+
+def generate_score_explanations(
+    overview: StockOverview,
+    technicals: TechnicalIndicators,
+    score: ScoreBreakdown,
+) -> dict | None:
+    try:
+        provider = _active_provider()
+        prompt = _build_score_explanations_prompt(overview, technicals, score)
+
+        if provider == "anthropic":
+            client = _get_anthropic()
+            message = client.messages.create(
+                model="claude-haiku-4-5-20251001",
+                max_tokens=256,
+                messages=[{"role": "user", "content": prompt}],
+            )
+            raw = message.content[0].text
+        else:
+            client = _get_gemini()
+            response = client.models.generate_content(
+                model="gemini-2.5-flash",
+                contents=prompt,
+            )
+            raw = response.text
+
+        raw = raw.strip()
+        if raw.startswith("```"):
+            raw = raw.split("\n", 1)[1].rsplit("```", 1)[0].strip()
+        return json.loads(raw)
+    except Exception:
+        return None
