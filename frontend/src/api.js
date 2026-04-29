@@ -13,6 +13,7 @@ export const api = {
   searchStock: (q) => req(`/api/stocks/search?q=${encodeURIComponent(q)}`),
   getStock: (ticker, ai = true) => req(`/api/stocks/${ticker}?ai=${ai}`),
   getHistory: (ticker, period = "6mo") => req(`/api/stocks/${ticker}/history?period=${period}`),
+  getEnrichedNews: (ticker) => req(`/api/stocks/${ticker}/news`),
   getWatchlist: () => req("/api/watchlist/"),
   getWatchlistSummary: () => req("/api/watchlist/summary"),
   addToWatchlist: (ticker) =>

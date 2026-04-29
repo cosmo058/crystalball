@@ -137,6 +137,70 @@ Return ONLY valid JSON, no markdown:
 {{"valuation":"...","technical":"...","momentum":"...","fundamental":"..."}}"""
 
 
+def analyze_news_sentiment(items, ticker: str, limit: int = 8):
+    """Batch-analyze, filter irrelevant articles, and return up to `limit` enriched NewsItems."""
+    from models.schemas import NewsItem
+
+    lines = []
+    for i, item in enumerate(items, 1):
+        excerpt = f" — {item.summary[:250]}" if item.summary else ""
+        lines.append(f'{i}. "{item.title}"{excerpt}')
+
+    prompt = (
+        f"You are reviewing {len(items)} news articles for relevance and sentiment regarding {ticker}.\n\n"
+        + "\n".join(lines)
+        + f"\n\nFor each article return:\n"
+        f'- "relevant": true if the article is directly about the company, its earnings, products, management, '
+        f'analyst ratings, or its specific sector — false if it is purely macro/geopolitical/unrelated\n'
+        f'- "sentiment": POSITIVE, NEGATIVE, or NEUTRAL based on impact on {ticker} (only if relevant)\n'
+        f'- "reason": one sentence max 12 words explaining the impact (only if relevant, else null)\n\n'
+        f"Return ONLY a valid JSON array in the same order, no markdown:\n"
+        f'[{{"relevant":true,"sentiment":"POSITIVE","reason":"..."}},...]'
+    )
+
+    try:
+        provider = _active_provider()
+        if provider == "anthropic":
+            client = _get_anthropic()
+            message = client.messages.create(
+                model="claude-haiku-4-5-20251001",
+                max_tokens=768,
+                messages=[{"role": "user", "content": prompt}],
+            )
+            raw = message.content[0].text
+        else:
+            client = _get_gemini()
+            response = client.models.generate_content(
+                model="gemini-2.5-flash",
+                contents=prompt,
+            )
+            raw = response.text
+
+        raw = raw.strip()
+        if raw.startswith("```"):
+            raw = raw.split("\n", 1)[1].rsplit("```", 1)[0].strip()
+
+        results = json.loads(raw)
+        enriched = []
+        for item, result in zip(items, results):
+            if not result.get("relevant", True):
+                continue
+            enriched.append(NewsItem(
+                title=item.title,
+                source=item.source,
+                url=item.url,
+                published=item.published,
+                summary=item.summary,
+                sentiment=result.get("sentiment", item.sentiment),
+                sentiment_reason=result.get("reason"),
+            ))
+            if len(enriched) >= limit:
+                break
+        return enriched if enriched else items[:limit]
+    except Exception:
+        return items[:limit]
+
+
 def generate_score_explanations(
     overview: StockOverview,
     technicals: TechnicalIndicators,

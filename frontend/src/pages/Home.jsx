@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, TrendingUp, BarChart2, Sparkles, Bookmark } from "lucide-react";
+import { Search, BarChart2, Sparkles, Bookmark } from "lucide-react";
 import { normalizeTicker } from "../utils/ticker";
 
 const POPULAR = ["AAPL", "TSLA", "NVDA", "MSFT", "SHOP.TO", "RY.TO", "CNQ.TO", "AMD"];
@@ -18,8 +18,8 @@ export default function Home() {
   return (
     <div className="flex flex-col items-center justify-center min-h-[80vh] px-4 text-center space-y-10">
       <div className="space-y-4">
-        <div className="flex items-center justify-center gap-3 text-accent">
-          <TrendingUp size={40} />
+        <div className="flex items-center justify-center">
+          <span className="text-6xl leading-none">🔮</span>
         </div>
         <h1 className="text-5xl font-bold text-slate-100 tracking-tight">
           Crystal<span className="text-accent">ball</span>
@@ -66,7 +66,7 @@ export default function Home() {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-2xl w-full text-left">
         {[
           { icon: BarChart2, title: "Technical Analysis", desc: "RSI, MACD, Bollinger Bands, and moving averages." },
-          { icon: Sparkles, title: "AI Intelligence", desc: "Claude-powered narrative summaries and insights." },
+          { icon: Sparkles, title: "AI Intelligence", desc: "AI-powered narrative summaries, sentiment analysis, and score insights." },
           { icon: Bookmark, title: "Watchlist", desc: "Track your favorite tickers in one place." },
         ].map(({ icon: Icon, title, desc }) => (
           <div key={title} className="bg-card border border-border rounded-xl p-4 space-y-1.5">

@@ -1,9 +1,9 @@
 from fastapi import APIRouter, HTTPException, Query
 from services.market_data import get_stock_overview, get_price_history, get_technical_indicators, search_ticker
 from services.scoring import compute_score
-from services.news_service import get_stock_news
+from services.news_service import get_stock_news, get_enriched_news
 from services.ai_analysis import generate_ai_summary, generate_score_explanations, get_ai_provider_name
-from services.ticker_utils import normalize_ticker, base_symbol
+from services.ticker_utils import normalize_ticker
 from models.schemas import StockAnalysis, StockOverview
 import os
 
@@ -23,6 +23,30 @@ async def search_stocks(q: str = Query(..., min_length=1)):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+# Specific sub-routes MUST come before the /{ticker:path} catch-all,
+# otherwise FastAPI greedily matches e.g. "RY.TO/news" as the ticker.
+
+@router.get("/{ticker:path}/news")
+async def get_news(ticker: str):
+    try:
+        ticker = normalize_ticker(ticker)
+        overview = get_stock_overview(ticker)   # cached — no extra API call
+        return get_enriched_news(ticker, name=overview.name)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/{ticker:path}/history")
+async def get_history(ticker: str, period: str = Query(default="6mo")):
+    valid_periods = ["1mo", "3mo", "6mo", "1y", "2y", "5y"]
+    if period not in valid_periods:
+        raise HTTPException(status_code=400, detail=f"Period must be one of {valid_periods}")
+    try:
+        return get_price_history(normalize_ticker(ticker), period)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @router.get("/{ticker:path}", response_model=StockAnalysis)
 async def get_stock_analysis(
     ticker: str,
@@ -33,7 +57,7 @@ async def get_stock_analysis(
         overview = get_stock_overview(ticker)
         technicals = get_technical_indicators(ticker)
         score = compute_score(overview, technicals)
-        news = get_stock_news(base_symbol(ticker))
+        news = get_stock_news(ticker, name=overview.name)
         history = get_price_history(ticker)
 
         ai_summary = None
@@ -61,16 +85,5 @@ async def get_stock_analysis(
             price_history=history,
             score_explanations=score_explanations,
         )
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@router.get("/{ticker:path}/history")
-async def get_history(ticker: str, period: str = Query(default="6mo")):
-    valid_periods = ["1mo", "3mo", "6mo", "1y", "2y", "5y"]
-    if period not in valid_periods:
-        raise HTTPException(status_code=400, detail=f"Period must be one of {valid_periods}")
-    try:
-        return get_price_history(normalize_ticker(ticker), period)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

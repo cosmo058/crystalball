@@ -19,15 +19,26 @@ export default function StockDetail() {
   const [error, setError] = useState(null);
   const [inWatchlist, setInWatchlist] = useState(false);
   const [watchlistLoading, setWatchlistLoading] = useState(false);
+  const [newsEnriching, setNewsEnriching] = useState(false);
 
   const load = async (withAi = true) => {
     setLoading(true);
     setError(null);
     try {
-      const result = await api.getStock(ticker, withAi);
+      const [result, wl] = await Promise.all([
+        api.getStock(ticker, withAi),
+        api.getWatchlist(),
+      ]);
       setData(result);
-      const wl = await api.getWatchlist();
       setInWatchlist(wl.some((i) => i.ticker === ticker.toUpperCase()));
+
+      if (withAi) {
+        setNewsEnriching(true);
+        api.getEnrichedNews(ticker)
+          .then((enriched) => setData((prev) => ({ ...prev, news: enriched })))
+          .catch(() => {})
+          .finally(() => setNewsEnriching(false));
+      }
     } catch (e) {
       setError(e.message);
     } finally {
@@ -104,7 +115,7 @@ export default function StockDetail() {
         </div>
         <div className="space-y-4">
           <ScoreCard score={data?.score} explanations={data?.score_explanations} />
-          <NewsCard news={data?.news} />
+          <NewsCard news={data?.news} enriching={newsEnriching} />
         </div>
       </div>
 

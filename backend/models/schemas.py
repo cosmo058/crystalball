@@ -47,7 +47,9 @@ class NewsItem(BaseModel):
     source: str
     url: str
     published: str
-    sentiment: str  # POSITIVE, NEUTRAL, NEGATIVE
+    sentiment: str                      # POSITIVE, NEUTRAL, NEGATIVE
+    summary: Optional[str] = None       # article excerpt from RSS
+    sentiment_reason: Optional[str] = None  # AI-generated explanation
 
 
 class StockAnalysis(BaseModel):

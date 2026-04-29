@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
-import { Search, TrendingUp } from "lucide-react";
+import { Search } from "lucide-react";
 import { normalizeTicker } from "../utils/ticker";
 
 export default function Navbar() {
@@ -19,7 +19,7 @@ export default function Navbar() {
   return (
     <nav className="sticky top-0 z-50 bg-card border-b border-border px-6 py-3 flex items-center gap-4">
       <Link to="/" className="flex items-center gap-2 text-accent font-bold text-xl shrink-0">
-        <TrendingUp size={22} />
+        <span className="text-2xl leading-none">🔮</span>
         Crystalball
       </Link>
 
